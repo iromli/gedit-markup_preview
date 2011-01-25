@@ -8,7 +8,7 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2, or (at your option)
 # any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -64,13 +64,13 @@ UI = """
   </menubar>
 </ui>"""
 
-class MarkdownPreviewPlugin(gedit.Plugin):
+class MarkupPreviewPlugin(gedit.Plugin):
 
 	def __init__(self):
 		gedit.Plugin.__init__(self)
-			
+
 	def activate(self, window):
-		
+
 		wndata = dict()
 		window.set_data("MPData", wndata)
 
@@ -79,26 +79,26 @@ class MarkdownPreviewPlugin(gedit.Plugin):
 		sw.set_property("vscrollbar-policy",gtk.POLICY_AUTOMATIC)
 		sw.set_property("shadow-type",gtk.SHADOW_IN)
 
-		wv = webkit.WebView() 				
+		wv = webkit.WebView()
 		sw.add(wv)
 		sw.show_all()
-		
+
 		panel = window.get_bottom_panel()
-		
+
 		image = gtk.Image()
 		image.set_from_icon_name("gnome-mime-text-html", gtk.ICON_SIZE_MENU)
-		panel.add_item(sw, "Markdown Preview", image)
-		
+		panel.add_item(sw, "Markup Preview", image)
+
 		wndata["sw"] = sw
 		wndata["wv"] = wv
 
 		action = ("MP",
 			  	None,
-			  	"Markdown Preview",
+			  	"Markup Preview",
 			  	"<Control><Shift>G",
-			  	"Updates the Markdown HTML preview.",
+			  	"Updates the markup HTML preview.",
 			  	lambda x, y: self.update_preview(y))
-		
+
 		wndata["ag"] = gtk.ActionGroup("MPActions")
 		wndata["ag"].add_actions([action], window)
 
@@ -106,40 +106,40 @@ class MarkdownPreviewPlugin(gedit.Plugin):
 		manager.insert_action_group(wndata["ag"], -1)
 
 		wndata["ui_id"] = manager.add_ui_from_string(UI)
-		
+
 		manager.ensure_update()
-	
+
 	def deactivate(self, window):
 		wndata = window.get_data("MPData")
 
 		manager = window.get_ui_manager()
 		manager.remove_ui(wndata["ui_id"])
 		manager.remove_action_group(wndata["ag"])
-		
+
 		panel = window.get_bottom_panel()
 		panel.remove_item(wndata["sw"])
-		
+
 		manager.ensure_update()
-	
+
 	def update_preview(self, window):
 		wndata = window.get_data("MPData")
-		
+
 		view = window.get_active_view()
 		if not view:
 			 return
-		
+
 		doc = view.get_buffer()
-		
+
 		start = doc.get_start_iter()
 		end = doc.get_end_iter()
-		
+
 		if doc.get_selection_bounds():
 			start = doc.get_iter_at_mark(doc.get_insert())
 			end = doc.get_iter_at_mark(doc.get_selection_bound())
-		
+
 		text = doc.get_text(start, end)
 		html = HTML_TEMPLATE % (markdown.markdown(text),)
-		
+
 		wndata["wv"].load_string(html,'text/html','iso-8859-15','about:blank')
 
 		bottom = window.get_bottom_panel()

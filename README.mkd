@@ -1,5 +1,5 @@
-Markdown Preview plugin for Gedit
-=================================
+Markup Preview plugin for Gedit
+===============================
 
 This is my fork of [icebreaker/gm](https://github.com/icebreaker/gm) project. Totally ripped off and customized.
 
@@ -13,7 +13,7 @@ You'll need to install these libraries in order to use this plugin:
 
 Once you have those libraries, checkout the repository and copy contents of <code>plugins</code> to <code>~/.gnome2/gedit/plugins</code>.
 
-Afterwards, be sure to restart Gedit and activate the `Markdown Preview` plugin.
+Afterwards, be sure to restart Gedit and activate the `Markup Preview` plugin.
 
 How to use
 ----------
@@ -25,6 +25,12 @@ Credits
 * [original markdown preview plugin](http://live.gnome.org/Gedit/MarkdownSupport) by Michele Campeotto
 * [Github stylesheet](http://fgnass.posterous.com/github-markdown-preview) by FNass
 * [original gm project](https://github.com/icebreaker/gm) by icebreaker
+
+TODO
+----
+
+* add Textile support
+* add ReST support
 
 Copyright
 ---------
