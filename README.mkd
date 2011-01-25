@@ -11,7 +11,7 @@ You'll need to install these libraries in order to use this plugin:
 * <code>python-webkit</code>
 * <code>markdown</code>
 
-Once you have those libraries, checkout the repository and copy contents of <code>plugins</code> to <code>~/.gnome2/gedit/plugins</code>.
+Once you have those libraries, checkout the repository and copy contents of <code>plugin</code> to <code>~/.gnome2/gedit/plugins</code> manually or using <code>install.sh</code>.
 
 Afterwards, be sure to restart Gedit and activate the `Markup Preview` plugin.
 
