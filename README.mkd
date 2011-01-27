@@ -14,11 +14,11 @@ You'll need to install these libraries in order to use this plugin:
 
 Once you have those libraries, checkout the repository and copy contents of <code>plugin</code> to <code>~/.gnome2/gedit/plugins</code> manually or using <code>install.sh</code>.
 
-Afterwards, be sure to restart Gedit and activate the `Markup Preview` plugin.
+Afterwards, be sure to restart Gedit and activate the <code>Markup Preview</code> plugin.
 
 How to use
 ----------
-Just press `Ctrl+Shift+G` with some text in the current document to generate the preview.  The preview pane will pop-up automatically.
+Just press <code>Ctrl+Shift+G</code> with some text in the current document to generate the preview.  The preview pane will pop-up automatically.
 
 Credits
 -------
