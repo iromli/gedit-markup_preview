@@ -29,8 +29,8 @@ Credits
 TODO
 ----
 
-* add Textile support
-* add ReST support
+* <del>add Textile support</del>
+* add reStructured Text support
 
 Copyright
 ---------
