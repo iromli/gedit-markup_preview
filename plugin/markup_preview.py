@@ -1,4 +1,4 @@
-# mp.py - HTML preview of Markdown formatted text in Gedit using WebKit and the
+# markup_preview.py - HTML preview of Markdown formatted text in Gedit using WebKit and the
 # GitHub cascading stylesheet.
 #
 # Copyright (C) 2005 - Michele Campeotto
