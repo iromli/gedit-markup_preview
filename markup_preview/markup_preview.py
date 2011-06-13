@@ -73,7 +73,7 @@ class MarkupPreviewPlugin(gedit.Plugin):
 
     MARKDOWN_EXTENSIONS = ['.markdown', '.mdown', '.mkdn', '.mkd', '.md']
     TEXTILE_EXTENSIONS = ['.textile']
-    RST_EXTENSIONS = ['.rst']
+    RST_EXTENSIONS = ['.rst', '.rest']
 
     def __init__(self):
         gedit.Plugin.__init__(self)
