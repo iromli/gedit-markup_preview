@@ -2,5 +2,5 @@
 
 # SCRIPT_DIR
 cd `dirname $0`
-cp -R plugin/* ~/.gnome2/gedit/plugins
-
+echo "installing Markup Preview plugin for Gedit"
+cp -R markup_preview/* ~/.gnome2/gedit/plugins

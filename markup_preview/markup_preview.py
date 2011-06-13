@@ -103,7 +103,7 @@ class MarkupPreviewPlugin(gedit.Plugin):
         action = ("MP",
                   None,
                   "Markup Preview",
-                  "<Alt><Shift>G",
+                  "<Alt><Shift>M",
                   "Updates the markup HTML preview.",
                   lambda x, y: self.update_preview(y))
 

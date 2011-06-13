@@ -1,25 +1,26 @@
 Markup Preview plugin for Gedit
 ===============================
 
-This is my fork of [icebreaker/gm](https://github.com/icebreaker/gm) project. Totally ripped off and customized.
+Started as a fork of [icebreaker/gm](https://github.com/icebreaker/gm) project, but recently added **Textile** and **ReStructuredText** supports.
 
-How to install
---------------
+Installation
+------------
 
-You'll need to install these libraries in order to use this plugin:
+You'll need to install these Python libraries to use this plugin:
 
-* <code>python-webkit</code>
-* <code>python-markdown</code>
-* <code>python-textile</code>
-* <code>python-docutils</code>
+* `webkit`
+* `markdown`
+* `textile`
+* `docutils`
 
-Once you have those libraries, checkout the repository and copy contents of <code>plugin</code> to <code>~/.gnome2/gedit/plugins</code> manually or using <code>install.sh</code>.
+Once you have those libraries, checkout the repository and copy contents of `markup_preview` to `~/.gnome2/gedit/plugins` manually or using `install.sh`.
 
-Afterwards, be sure to restart Gedit and activate the <code>Markup Preview</code> plugin.
+Afterwards, be sure to restart Gedit and activate the **Markup Preview** plugin.
 
-How to use
-----------
-Just press <code>Ctrl+Shift+G</code> with some text in the current document to generate the preview.  The preview pane will pop-up automatically.
+Usage
+-----
+
+Just press `Shift+Alt+M` with some text in the current document to generate the preview.  The preview pane will pop-up automatically.
 
 Credits
 -------
@@ -27,12 +28,6 @@ Credits
 * [original markdown preview plugin](http://live.gnome.org/Gedit/MarkdownSupport) by Michele Campeotto
 * [Github stylesheet](http://fgnass.posterous.com/github-markdown-preview) by FNass
 * [original gm project](https://github.com/icebreaker/gm) by icebreaker
-
-TODO
-----
-
-* <del>add Textile support</del>
-* <del>add reStructuredText support</del>
 
 Copyright
 ---------
