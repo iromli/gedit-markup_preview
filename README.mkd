@@ -1,7 +1,7 @@
 Markup Preview plugin for Gedit
 ===============================
 
-Started as a fork of [icebreaker/gm](https://github.com/icebreaker/gm) project, but recently added **Textile** and **ReStructuredText** supports.
+Started as a fork of [icebreaker/gm](https://github.com/icebreaker/gm) project, but recently added **Textile** and **reStructuredText** supports.
 
 Installation
 ------------
