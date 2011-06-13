@@ -146,8 +146,9 @@ class MarkupPreviewPlugin(gedit.Plugin):
             end = doc.get_iter_at_mark(doc.get_selection_bound())
 
         text = doc.get_text(start, end)
-
         file_ext = os.path.splitext(doc.get_short_name_for_display())[-1]
+        content = None
+
         if file_ext in self.TEXTILE_EXTENSIONS:
             content = textile.textile(text)
         elif file_ext in self.MARKDOWN_EXTENSIONS:
@@ -159,8 +160,10 @@ class MarkupPreviewPlugin(gedit.Plugin):
                                          settings_overrides=extras)
             content = content.get('html_body')
 
-        html = HTML_TEMPLATE % (content,)
+        if not content:
+            content = '<p>Cannot render this file -- unsupported markup or file extension!</p>'
 
+        html = HTML_TEMPLATE % (content,)
         wndata["wv"].load_string(html,'text/html','iso-8859-15','about:blank')
 
         bottom = window.get_bottom_panel()
