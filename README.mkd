@@ -54,6 +54,15 @@ Usage
 
 Just press `Shift+Alt+M` with some text in the current document to generate the preview.  The preview pane will pop-up automatically.
 
+Submitting a Pull Request
+-------------------------
+
+1. Fork the project.
+2. Create a topic branch.
+3. Implement your feature or bug fix.
+4. Commit and push your changes.
+5. Submit a pull request against `develop` branch.
+
 Credits
 -------
 
