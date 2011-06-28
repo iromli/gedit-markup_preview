@@ -8,10 +8,42 @@ Installation
 
 You'll need to install these Python libraries to use this plugin:
 
-* `webkit`
-* `markdown`
-* `textile`
-* `docutils`
+1. `webkit`:
+
+        sudo apt-get install python-webkit
+
+    (or)
+
+        git clone git://git.savannah.gnu.org/pythonwebkit.git python-webkit
+        cd python-webkit
+        git checkout python_codegen
+        TODO: makefile steps
+
+2. `markdown`:
+
+        sudo apt-get install python-markdown
+    
+    (or)
+ 
+        git clone git://github.com/waylan/Python-Markdown.git python-markdown
+        cd python-markdown
+        python setup.py install
+
+3. `textile`:
+
+        sudo apt-get install python-textile
+
+    (or)
+
+        // TODO: insert manual steps here
+
+4. `docutils`:
+
+        sudo apt-get install python-docutils
+
+    (or)
+
+        // TODO: insert manual steps here
 
 Once you have those libraries, checkout the repository and copy contents of `markup_preview` to `~/.gnome2/gedit/plugins` manually or using `install.sh`.
 
