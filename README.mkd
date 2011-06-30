@@ -1,10 +1,15 @@
-Markup Preview plugin for Gedit
-===============================
+# Markup Preview Plugin for Gedit
 
-Started as a fork of [icebreaker/gm](https://github.com/icebreaker/gm) project, but recently added **Textile** and **reStructuredText** supports.
+Preview your favorite markup (in a `github`-ish style) right from your Gedit text editor.
 
-Installation
-------------
+## Supported Markups
+
+* **markdown** (`.markdown`, `.md`, `.mdown`, `.mkd`, `.mkdn`)
+* **textile** (`.textile`)
+* **reStructuredText** (`.rst`, `.rest`)
+
+
+## Installation
 
 You'll need to install these Python libraries to use this plugin:
 
@@ -14,10 +19,7 @@ You'll need to install these Python libraries to use this plugin:
 
     (or)
 
-        git clone git://git.savannah.gnu.org/pythonwebkit.git python-webkit
-        cd python-webkit
-        git checkout python_codegen
-        TODO: makefile steps
+    head over to [pythonwebkit](http://www.gnu.org/software/pythonwebkit/) for manual installation
 
 2. `markdown`:
 
@@ -25,9 +27,7 @@ You'll need to install these Python libraries to use this plugin:
     
     (or)
  
-        git clone git://github.com/waylan/Python-Markdown.git python-markdown
-        cd python-markdown
-        python setup.py install
+        [sudo] pip install markdown
 
 3. `textile`:
 
@@ -35,7 +35,7 @@ You'll need to install these Python libraries to use this plugin:
 
     (or)
 
-        // TODO: insert manual steps here
+        [sudo] pip install textile
 
 4. `docutils`:
 
@@ -43,19 +43,17 @@ You'll need to install these Python libraries to use this plugin:
 
     (or)
 
-        // TODO: insert manual steps here
+        [sudo] pip install docutils
 
 Once you have those libraries, checkout the repository and copy contents of `markup_preview` to `~/.gnome2/gedit/plugins` manually or using `install.sh`.
 
 Afterwards, be sure to restart Gedit and activate the **Markup Preview** plugin.
 
-Usage
------
+## Usage
 
 Just press `Shift+Alt+M` with some text in the current document to generate the preview.  The preview pane will pop-up automatically.
 
-Submitting a Pull Request
--------------------------
+## Submitting a Pull Request
 
 1. Fork the project.
 2. Create a topic branch.
@@ -63,14 +61,12 @@ Submitting a Pull Request
 4. Commit and push your changes.
 5. Submit a pull request against `develop` branch.
 
-Credits
--------
+## Credits
 
 * [original markdown preview plugin](http://live.gnome.org/Gedit/MarkdownSupport) by Michele Campeotto
 * [Github stylesheet](http://fgnass.posterous.com/github-markdown-preview) by FNass
 * [original gm project](https://github.com/icebreaker/gm) by icebreaker
 
-Copyright
----------
+## Copyright
 
-See LICENSE for details.
+See `LICENSE` for details.
