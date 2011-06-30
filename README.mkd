@@ -1,13 +1,12 @@
 # Markup Preview Plugin for Gedit
 
-Preview your favorite markup (in a `github`-ish style) right from your Gedit text editor.
+Preview your favorite markup right from your Gedit text editor.
 
-## Supported Markups
+## Supported Markups.
 
-* **markdown** (`.markdown`, `.mdown`, `.mkdn`, `.mkd`, `.md`)
+* **markdown** (`.markdown`, `.md`, `.mdown`, `.mkd`, `.mkdn`)
 * **textile** (`.textile`)
 * **reStructuredText** (`.rst`, `.rest`)
-
 
 ## Installation
 
@@ -45,13 +44,11 @@ You'll need to install these Python libraries to use this plugin:
 
         [sudo] pip install docutils
 
-Once you have those libraries, checkout the repository and copy contents of `markup_preview` to `~/.gnome2/gedit/plugins` manually or using `install.sh`.
-
-Afterwards, be sure to restart Gedit and activate the **Markup Preview** plugin.
+Once you have those libraries, checkout the repository and copy contents of `markup_preview` to `~/.gnome2/gedit/plugins` manually or using `install.sh`. Afterwards, be sure to restart Gedit and activate the **Markup Preview** plugin.
 
 ## Usage
 
-Just press `Shift+Alt+M` with some text in the current document to generate the preview.  The preview pane will pop-up automatically.
+Just press `Shift+Alt+M` with some text in the current document to generate the preview. A panel will be added into bottom pane and renders a HTML preview (in a `github`-ish style) if markup is supported. This panel will be automatically **reloaded** each time you save the document.
 
 ## Submitting a Pull Request
 

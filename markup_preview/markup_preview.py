@@ -1,5 +1,5 @@
-# markup_preview.py - HTML preview of Markdown formatted text in Gedit using WebKit and the
-# GitHub cascading stylesheet.
+# markup_preview.py - HTML preview of various markups in Gedit
+# using WebKit and the GitHub cascading stylesheet.
 #
 # Copyright (C) 2005 - Michele Campeotto
 # Copyright (C) 2010 - Mihail Szabolcs
@@ -20,15 +20,14 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import gedit
-
 import os
-import sys
 import gtk
 import webkit
 import markdown
 import textile
-
 from docutils import core
+from gettext import gettext as _
+
 
 # Source: http://fgnass.posterous.com/github-markdown-preview
 HTML_TEMPLATE = """<html><head><style type="text/css">
@@ -58,6 +57,7 @@ HTML_TEMPLATE = """<html><head><style type="text/css">
  .github img{max-width:100%%;}
 </style></head><body><div class="github">%s</div></body></html>"""
 
+
 UI = """
 <ui>
   <menubar name="MenuBar">
@@ -69,75 +69,97 @@ UI = """
   </menubar>
 </ui>"""
 
-class MarkupPreviewPlugin(gedit.Plugin):
 
-    MARKDOWN_EXTENSIONS = ['.markdown', '.mdown', '.mkdn', '.mkd', '.md']
-    TEXTILE_EXTENSIONS = ['.textile']
-    RST_EXTENSIONS = ['.rst', '.rest']
+class MarkupPreviewPlugin(gedit.Plugin):
 
     def __init__(self):
         gedit.Plugin.__init__(self)
+        self.instances = {}
 
     def activate(self, window):
-        wndata = dict()
-        window.set_data("MPData", wndata)
+        self.instances[window] = MarkupPreview(self, window)
+        self.instances[window].activate()
 
-        sw = gtk.ScrolledWindow()
-        sw.set_property("hscrollbar-policy",gtk.POLICY_AUTOMATIC)
-        sw.set_property("vscrollbar-policy",gtk.POLICY_AUTOMATIC)
-        sw.set_property("shadow-type",gtk.SHADOW_IN)
+    def deactivate(self, window):
+        self.instances[window].deactivate()
+        del self.instances[window]
 
-        wv = webkit.WebView()
-        sw.add(wv)
-        sw.show_all()
+    def update_ui(self, window):
+        self.instances[window].update_ui()
 
-        panel = window.get_bottom_panel()
+
+class MarkupPreview:
+
+    def __init__(self, plugin, window):
+        self.window = window
+        self.plugin = plugin
+        self.valid_markup = False
+        self.MARKUP_CHOICES = {
+            'markdown': ['.markdown', '.md', '.mdown', '.mkd', '.mkdn'],
+            'textile': ['.textile'],
+            'rest': ['.rest', '.rst']
+        }
+
+    def activate(self):
+        panel = self.window.get_bottom_panel()
+        manager = self.window.get_ui_manager()
 
         image = gtk.Image()
         image.set_from_icon_name("gnome-mime-text-html", gtk.ICON_SIZE_MENU)
-        panel.add_item(sw, "Markup Preview", image)
 
-        wndata["sw"] = sw
-        wndata["wv"] = wv
+        self._web_view = webkit.WebView()
+        self._scrolled_window = gtk.ScrolledWindow()
+        self._scrolled_window.set_property("hscrollbar-policy",
+            gtk.POLICY_AUTOMATIC)
+        self._scrolled_window.set_property("vscrollbar-policy",
+            gtk.POLICY_AUTOMATIC)
+        self._scrolled_window.set_property("shadow-type", gtk.SHADOW_IN)
+        self._scrolled_window.add(self._web_view)
+        self._scrolled_window.show_all()
 
-        action = ("MP",
-                  None,
-                  "Markup Preview",
-                  "<Alt><Shift>M",
-                  "Updates the markup HTML preview.",
-                  lambda x, y: self.update_preview(y))
+        panel.add_item(self._scrolled_window, "Markup Preview", image)
 
-        wndata["ag"] = gtk.ActionGroup("MPActions")
-        wndata["ag"].add_actions([action], window)
+        self._ui_id = manager.add_ui_from_string(UI)
 
-        manager = window.get_ui_manager()
-        manager.insert_action_group(wndata["ag"], -1)
+        self._action_group = gtk.ActionGroup("MPActions")
+        self._action_group.add_actions([
+            ("MP", None, _("Markup Preview"), "<Alt><Shift>M",
+                _("Updates the markup HTML preview."), self.parse_document)
+        ])
 
-        wndata["ui_id"] = manager.add_ui_from_string(UI)
+        for doc in self.window.get_documents():
+            self.connect_document(doc)
+
+        manager.insert_action_group(self._action_group, -1)
+        manager.ensure_update()
+
+    def deactivate(self):
+        manager = self.window.get_ui_manager()
+        manager.remove_ui(self._ui_id)
+        manager.remove_action_group(self._action_group)
+
+        panel = self.window.get_bottom_panel()
+        panel.remove_item(self._scrolled_window)
 
         manager.ensure_update()
 
-    def deactivate(self, window):
-        wndata = window.get_data("MPData")
+        try:
+            doc = self.window.get_active_document()
+            handler_id = doc.get_data(self.__class__.__name__)
+            doc.disconnect(handler_id)
+            doc.set_data(self.__class__.__name__, None)
+        except AttributeError:
+            pass
 
-        manager = window.get_ui_manager()
-        manager.remove_ui(wndata["ui_id"])
-        manager.remove_action_group(wndata["ag"])
+        self.plugin = None
+        self.window = None
 
-        panel = window.get_bottom_panel()
-        panel.remove_item(wndata["sw"])
-
-        manager.ensure_update()
-
-    def update_preview(self, window):
-        wndata = window.get_data("MPData")
-
-        view = window.get_active_view()
+    def parse_document(self, doc):
+        view = self.window.get_active_view()
         if not view:
             return
 
         doc = view.get_buffer()
-
         start = doc.get_start_iter()
         end = doc.get_end_iter()
 
@@ -145,27 +167,48 @@ class MarkupPreviewPlugin(gedit.Plugin):
             start = doc.get_iter_at_mark(doc.get_insert())
             end = doc.get_iter_at_mark(doc.get_selection_bound())
 
-        text = doc.get_text(start, end)
+        choices = self.MARKUP_CHOICES.iteritems()
         file_ext = os.path.splitext(doc.get_short_name_for_display())[-1]
-        content = None
 
-        if file_ext in self.TEXTILE_EXTENSIONS:
-            content = textile.textile(text)
-        elif file_ext in self.MARKDOWN_EXTENSIONS:
+        markup = None
+        for format, ext in choices:
+            if file_ext in ext:
+                markup = format
+                self.valid_markup = True
+                break
+
+        text = doc.get_text(start, end)
+        if markup == 'markdown':
             content = markdown.markdown(text)
-        elif file_ext in self.RST_EXTENSIONS:
+        elif markup == 'rest':
             extras = {'initial_header_level': '2'}
-            content = core.publish_parts(text,
-                                         writer_name='html',
-                                         settings_overrides=extras)
+            content = core.publish_parts(text, writer_name='html',
+                settings_overrides=extras)
             content = content.get('html_body')
+        elif markup == 'textile':
+            content = textile.textile(text)
 
-        if not content:
-            content = '<p>Cannot render this file -- unsupported markup or file extension!</p>'
+        if not markup:
+            return
 
         html = HTML_TEMPLATE % (content,)
-        wndata["wv"].load_string(html,'text/html','iso-8859-15','about:blank')
+        self._web_view.load_string(html,'text/html','iso-8859-15','about:blank')
 
-        bottom = window.get_bottom_panel()
-        bottom.activate_item(wndata['sw'])
-        bottom.set_property('visible',True)
+        bottom = self.window.get_bottom_panel()
+        bottom.activate_item(self._scrolled_window)
+        bottom.set_property('visible', True)
+
+    def update_ui(self):
+        self.connect_document(self.window.get_active_document())
+
+    def connect_document(self, doc):
+        try:
+            handler_id = doc.connect("save", self.on_document_saved)
+            doc.set_data(self.__class__.__name__, handler_id)
+        except AttributeError:
+            pass
+
+    def on_document_saved(self, doc, *args):
+        if self.valid_markup is False:
+            return
+        self.parse_document(doc)
