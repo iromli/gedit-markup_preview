@@ -1,5 +1,5 @@
-# markup_preview.py - HTML preview of various markups in Gedit using WebKit and the
-# GitHub cascading stylesheet.
+# markup_preview.py - HTML preview of various markups in Gedit
+# using WebKit and the GitHub cascading stylesheet.
 #
 # Copyright (C) 2005 - Michele Campeotto
 # Copyright (C) 2010 - Mihail Szabolcs
@@ -57,6 +57,7 @@ HTML_TEMPLATE = """<html><head><style type="text/css">
  .github img{max-width:100%%;}
 </style></head><body><div class="github">%s</div></body></html>"""
 
+
 UI = """
 <ui>
   <menubar name="MenuBar">
@@ -83,13 +84,16 @@ class MarkupPreviewPlugin(gedit.Plugin):
         self.instances[window].deactivate()
         del self.instances[window]
 
+    def update_ui(self, window):
+        self.instances[window].update_ui()
+
 
 class MarkupPreview:
 
     def __init__(self, plugin, window):
         self.window = window
         self.plugin = plugin
-        self.markup = None
+        self.valid_markup = False
         self.MARKUP_CHOICES = {
             'markdown': ['.markdown', '.md', '.mdown', '.mkd', '.mkdn'],
             'textile': ['.textile'],
@@ -120,8 +124,11 @@ class MarkupPreview:
         self._action_group = gtk.ActionGroup("MPActions")
         self._action_group.add_actions([
             ("MP", None, _("Markup Preview"), "<Alt><Shift>M",
-                _("Updates the markup HTML preview."), self.update_preview)
+                _("Updates the markup HTML preview."), self.parse_document)
         ])
+
+        for doc in self.window.get_documents():
+            self.connect_document(doc)
 
         manager.insert_action_group(self._action_group, -1)
         manager.ensure_update()
@@ -136,21 +143,18 @@ class MarkupPreview:
 
         manager.ensure_update()
 
-        self.plugin = None
-        self.window = None
-
-    def connect_document(self, doc):
         try:
-            handler_id = doc.connect("saved", self.on_document_saved)
-            doc.set_data("MPData", handler_id)
+            doc = self.window.get_active_document()
+            handler_id = doc.get_data(self.__class__.__name__)
+            doc.disconnect(handler_id)
+            doc.set_data(self.__class__.__name__, None)
         except AttributeError:
             pass
 
-    def on_document_saved(self, doc, *args):
-        if not self.markup:
-            return
+        self.plugin = None
+        self.window = None
 
-    def update_preview(self, *args):
+    def parse_document(self, doc):
         view = self.window.get_active_view()
         if not view:
             return
@@ -163,30 +167,48 @@ class MarkupPreview:
             start = doc.get_iter_at_mark(doc.get_insert())
             end = doc.get_iter_at_mark(doc.get_selection_bound())
 
-        text = doc.get_text(start, end)
-        content = '<p>Cannot render this file -- unsupported markup or file extension!</p>'
-
         choices = self.MARKUP_CHOICES.iteritems()
         file_ext = os.path.splitext(doc.get_short_name_for_display())[-1]
 
+        markup = None
         for format, ext in choices:
             if file_ext in ext:
-                self.markup = format
+                markup = format
+                self.valid_markup = True
                 break
 
-        if self.markup == 'markdown':
+        text = doc.get_text(start, end)
+        if markup == 'markdown':
             content = markdown.markdown(text)
-        elif self.markup == 'rest':
+        elif markup == 'rest':
             extras = {'initial_header_level': '2'}
             content = core.publish_parts(text, writer_name='html',
                 settings_overrides=extras)
             content = content.get('html_body')
-        elif self.markup == 'textile':
+        elif markup == 'textile':
             content = textile.textile(text)
+
+        if not markup:
+            return
 
         html = HTML_TEMPLATE % (content,)
         self._web_view.load_string(html,'text/html','iso-8859-15','about:blank')
 
         bottom = self.window.get_bottom_panel()
         bottom.activate_item(self._scrolled_window)
-        bottom.set_property('visible',True)
+        bottom.set_property('visible', True)
+
+    def update_ui(self):
+        self.connect_document(self.window.get_active_document())
+
+    def connect_document(self, doc):
+        try:
+            handler_id = doc.connect("save", self.on_document_saved)
+            doc.set_data(self.__class__.__name__, handler_id)
+        except AttributeError:
+            pass
+
+    def on_document_saved(self, doc, *args):
+        if self.valid_markup is False:
+            return
+        self.parse_document(doc)
