@@ -83,11 +83,13 @@ class MarkupPreviewPlugin(gedit.Plugin):
 
     def activate(self, window):
         self.instances[window] = MarkupPreview(self, window)
-        self.instances[window].activate()
 
     def deactivate(self, window):
         self.instances[window].deactivate()
         del self.instances[window]
+
+    def update_ui(self, window):
+        self.instances[window].update_ui()
 
 
 class MarkupPreview:
@@ -96,6 +98,10 @@ class MarkupPreview:
         self.window = window
         self.plugin = plugin
         self.valid_markup = False
+        self.activate()
+
+    def update_ui(self):
+        self.parse_document()
 
     def activate(self):
         panel = self.window.get_bottom_panel()
@@ -118,33 +124,22 @@ class MarkupPreview:
             'web_view': web_view
         }
 
-        window_data['ui_id'] = manager.add_ui_from_string(UI)
-
-        window_data['action_group'] = gtk.ActionGroup("MPActions")
-        window_data['action_group'].add_actions([
-            ("MP", None, _("Markup Preview"), "<Alt><Shift>M",
-                _("Updates the markup HTML preview."), self.parse_document)
-        ])
-
-        manager.insert_action_group(window_data['action_group'], -1)
         manager.ensure_update()
         self.window.set_data('MarkupPreviewData', window_data)
 
     def deactivate(self):
         window_data = self.window.get_data('MarkupPreviewData')
         manager = self.window.get_ui_manager()
-        manager.remove_ui(self._ui_id)
-        manager.remove_action_group(window_data['action_group'])
 
         panel = self.window.get_bottom_panel()
         panel.remove_item(window_data['scrolled_window'])
 
+        self.window.set_data('MarkupPreviewData', None)
         self.plugin = None
         self.window = None
-        self.window.set_data('MarkupPreviewData', None)
         manager.ensure_update()
 
-    def parse_document(self, action):
+    def parse_document(self, *args):
         window_data = self.window.get_data('MarkupPreviewData')
         view = self.window.get_active_view()
         if not view:
