@@ -57,7 +57,6 @@ HTML_TEMPLATE = """<html><head><style type="text/css">
  .github img{max-width:100%%;}
 </style></head><body><div class="github">%s</div></body></html>"""
 
-
 UI = """
 <ui>
   <menubar name="MenuBar">
@@ -68,6 +67,12 @@ UI = """
     </menu>
   </menubar>
 </ui>"""
+
+MARKUP_CHOICES = {
+    'markdown': ['.markdown', '.md', '.mdown', '.mkd', '.mkdn'],
+    'textile': ['.textile'],
+    'rest': ['.rest', '.rst']
+}
 
 
 class MarkupPreviewPlugin(gedit.Plugin):
@@ -84,9 +89,6 @@ class MarkupPreviewPlugin(gedit.Plugin):
         self.instances[window].deactivate()
         del self.instances[window]
 
-    def update_ui(self, window):
-        self.instances[window].update_ui()
-
 
 class MarkupPreview:
 
@@ -94,11 +96,6 @@ class MarkupPreview:
         self.window = window
         self.plugin = plugin
         self.valid_markup = False
-        self.MARKUP_CHOICES = {
-            'markdown': ['.markdown', '.md', '.mdown', '.mkd', '.mkdn'],
-            'textile': ['.textile'],
-            'rest': ['.rest', '.rst']
-        }
 
     def activate(self):
         panel = self.window.get_bottom_panel()
@@ -107,54 +104,48 @@ class MarkupPreview:
         image = gtk.Image()
         image.set_from_icon_name("gnome-mime-text-html", gtk.ICON_SIZE_MENU)
 
-        self._web_view = webkit.WebView()
-        self._scrolled_window = gtk.ScrolledWindow()
-        self._scrolled_window.set_property("hscrollbar-policy",
-            gtk.POLICY_AUTOMATIC)
-        self._scrolled_window.set_property("vscrollbar-policy",
-            gtk.POLICY_AUTOMATIC)
-        self._scrolled_window.set_property("shadow-type", gtk.SHADOW_IN)
-        self._scrolled_window.add(self._web_view)
-        self._scrolled_window.show_all()
+        web_view = webkit.WebView()
+        scrolled_window = gtk.ScrolledWindow()
+        scrolled_window.set_property("hscrollbar-policy", gtk.POLICY_AUTOMATIC)
+        scrolled_window.set_property("vscrollbar-policy", gtk.POLICY_AUTOMATIC)
+        scrolled_window.set_property("shadow-type", gtk.SHADOW_IN)
+        scrolled_window.add(web_view)
+        scrolled_window.show_all()
+        panel.add_item(scrolled_window, "Markup Preview", image)
 
-        panel.add_item(self._scrolled_window, "Markup Preview", image)
+        window_data = {
+            'scrolled_window': scrolled_window,
+            'web_view': web_view
+        }
 
-        self._ui_id = manager.add_ui_from_string(UI)
+        window_data['ui_id'] = manager.add_ui_from_string(UI)
 
-        self._action_group = gtk.ActionGroup("MPActions")
-        self._action_group.add_actions([
+        window_data['action_group'] = gtk.ActionGroup("MPActions")
+        window_data['action_group'].add_actions([
             ("MP", None, _("Markup Preview"), "<Alt><Shift>M",
                 _("Updates the markup HTML preview."), self.parse_document)
         ])
 
-        for doc in self.window.get_documents():
-            self.connect_document(doc)
-
-        manager.insert_action_group(self._action_group, -1)
+        manager.insert_action_group(window_data['action_group'], -1)
         manager.ensure_update()
+        self.window.set_data('MarkupPreviewData', window_data)
 
     def deactivate(self):
+        window_data = self.window.get_data('MarkupPreviewData')
         manager = self.window.get_ui_manager()
         manager.remove_ui(self._ui_id)
-        manager.remove_action_group(self._action_group)
+        manager.remove_action_group(window_data['action_group'])
 
         panel = self.window.get_bottom_panel()
-        panel.remove_item(self._scrolled_window)
-
-        manager.ensure_update()
-
-        try:
-            doc = self.window.get_active_document()
-            handler_id = doc.get_data(self.__class__.__name__)
-            doc.disconnect(handler_id)
-            doc.set_data(self.__class__.__name__, None)
-        except AttributeError:
-            pass
+        panel.remove_item(window_data['scrolled_window'])
 
         self.plugin = None
         self.window = None
+        self.window.set_data('MarkupPreviewData', None)
+        manager.ensure_update()
 
-    def parse_document(self, doc):
+    def parse_document(self, action):
+        window_data = self.window.get_data('MarkupPreviewData')
         view = self.window.get_active_view()
         if not view:
             return
@@ -167,7 +158,7 @@ class MarkupPreview:
             start = doc.get_iter_at_mark(doc.get_insert())
             end = doc.get_iter_at_mark(doc.get_selection_bound())
 
-        choices = self.MARKUP_CHOICES.iteritems()
+        choices = MARKUP_CHOICES.iteritems()
         file_ext = os.path.splitext(doc.get_short_name_for_display())[-1]
 
         markup = None
@@ -192,23 +183,9 @@ class MarkupPreview:
             return
 
         html = HTML_TEMPLATE % (content,)
-        self._web_view.load_string(html,'text/html','iso-8859-15','about:blank')
+        window_data['web_view'].load_string(html,'text/html', 'iso-8859-15',
+            'about:blank')
 
         bottom = self.window.get_bottom_panel()
-        bottom.activate_item(self._scrolled_window)
+        bottom.activate_item(window_data['scrolled_window'])
         bottom.set_property('visible', True)
-
-    def update_ui(self):
-        self.connect_document(self.window.get_active_document())
-
-    def connect_document(self, doc):
-        try:
-            handler_id = doc.connect("save", self.on_document_saved)
-            doc.set_data(self.__class__.__name__, handler_id)
-        except AttributeError:
-            pass
-
-    def on_document_saved(self, doc, *args):
-        if self.valid_markup is False:
-            return
-        self.parse_document(doc)
