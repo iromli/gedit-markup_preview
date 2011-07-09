@@ -44,7 +44,7 @@ You'll need to install these Python libraries to use this plugin:
 
         [sudo] pip install docutils
 
-Once you have those libraries, checkout the repository and copy contents of `markup_preview` to `~/.gnome2/gedit/plugins` manually or using `install.sh`. Afterwards, be sure to restart Gedit and activate the **Markup Preview** plugin.
+Once you have those libraries, checkout the repository and execute `install.sh`. Afterwards, be sure to restart Gedit and activate the **Markup Preview** plugin.
 
 ## Warning!
 
