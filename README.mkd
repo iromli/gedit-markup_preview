@@ -8,6 +8,12 @@ Preview your favorite markup right from your Gedit text editor.
 * **textile** (`.textile`)
 * **reStructuredText** (`.rst`, `.rest`)
 
+## Batteries Included
+
+* Markdown, Textile, and reStructuredText language-spec
+* Markdown MIME
+* HTML previewer bottom pane
+
 ## Installation
 
 You'll need to install these Python libraries to use this plugin:
@@ -45,10 +51,6 @@ You'll need to install these Python libraries to use this plugin:
         [sudo] pip install docutils
 
 Once you have those libraries, checkout the repository and execute `install.sh`. Afterwards, be sure to restart Gedit and activate the **Markup Preview** plugin.
-
-## Warning!
-
-If you feel that the latest version of `Markup Preview` is pretty slow or freezes your Gedit, you might want to switch to the old version (`git checkout 0.1`). While i don't encounter any significant issue yet, i will improve current codebase to achieve optimum speed.
 
 ## Submitting a Pull Request
 
