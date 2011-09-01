@@ -106,6 +106,16 @@ MARKUP_CHOICES = {
     'rest': ['.rest', '.rst']
 }
 
+UI = """<ui>
+    <menubar name="MenuBar">
+        <menu name="ToolsMenu" action="Tools">
+            <placeholder name="ToolsOps_2">
+                <menuitem name="MarkupPreview" action="MarkupPreview"/>
+            </placeholder>
+        </menu>
+    </menubar>
+</ui>"""
+
 
 class MarkupPreviewPlugin(gedit.Plugin):
 
@@ -132,7 +142,8 @@ class MarkupPreview:
         self.activate()
 
     def update_ui(self):
-        self.parse_document()
+        pass
+        #self.parse_document()
 
     def activate(self):
         panel = self.window.get_bottom_panel()
@@ -142,25 +153,40 @@ class MarkupPreview:
         image.set_from_icon_name("gnome-mime-text-html", gtk.ICON_SIZE_MENU)
 
         web_view = webkit.WebView()
+
         scrolled_window = gtk.ScrolledWindow()
         scrolled_window.set_property("hscrollbar-policy", gtk.POLICY_AUTOMATIC)
         scrolled_window.set_property("vscrollbar-policy", gtk.POLICY_AUTOMATIC)
         scrolled_window.set_property("shadow-type", gtk.SHADOW_IN)
         scrolled_window.add(web_view)
         scrolled_window.show_all()
-        panel.add_item(scrolled_window, "Markup Preview", image)
+
+        panel.add_item(scrolled_window, _("Markup Preview"), image)
+
+        action_group = gtk.ActionGroup("MarkupPreviewActions")
+        action_group.add_actions([
+            ("MarkupPreview", None, _("Markup Preview"), "<Alt><Shift>M",
+                _("Preview the HTML version."), self.parse_document)
+        ], self.window)
+
+        ui_id = manager.add_ui_from_string(UI)
 
         window_data = {
             'scrolled_window': scrolled_window,
-            'web_view': web_view
+            'web_view': web_view,
+            'action_group': action_group,
+            'ui_id': ui_id
         }
 
+        manager.insert_action_group(window_data["action_group"], -1)
         manager.ensure_update()
         self.window.set_data('MarkupPreviewData', window_data)
 
     def deactivate(self):
         window_data = self.window.get_data('MarkupPreviewData')
         manager = self.window.get_ui_manager()
+        manager.remove_ui(window_data["ui_id"])
+        manager.remove_action_group(window_data["action_group"])
 
         panel = self.window.get_bottom_panel()
         panel.remove_item(window_data['scrolled_window'])
