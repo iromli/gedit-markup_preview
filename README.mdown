@@ -52,6 +52,10 @@ You'll need to install these Python libraries to use this plugin:
 
 Once you have those libraries, checkout the repository and execute `install.sh`. Afterwards, be sure to restart Gedit and activate the **Markup Preview** plugin.
 
+## Usage
+
+Tap `<Alt><Shift>M` keys to preview the document in HTML version. If you want to enable live preview feature, make sure you check the *Enable live preview* checkbox in Markup Preview configuration.
+
 ## Submitting a Pull Request
 
 1. Fork the project.

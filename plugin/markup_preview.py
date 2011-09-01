@@ -19,12 +19,15 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+import gconf
 import gedit
-import os
 import gtk
+import os
 import webkit
+
 import markdown
 import textile
+
 from docutils import core
 from gettext import gettext as _
 
@@ -106,6 +109,16 @@ MARKUP_CHOICES = {
     'rest': ['.rest', '.rst']
 }
 
+UI = """<ui>
+    <menubar name="MenuBar">
+        <menu name="ToolsMenu" action="Tools">
+            <placeholder name="ToolsOps_2">
+                <menuitem name="MarkupPreview" action="MarkupPreview"/>
+            </placeholder>
+        </menu>
+    </menubar>
+</ui>"""
+
 
 class MarkupPreviewPlugin(gedit.Plugin):
 
@@ -123,6 +136,33 @@ class MarkupPreviewPlugin(gedit.Plugin):
     def update_ui(self, window):
         self.instances[window].update_ui()
 
+    def is_configurable(self):
+        return True
+
+    def create_configure_dialog(self):
+        dialog = gtk.Dialog("Markup Preview Configuration")
+        dialog.set_resizable(False)
+        dialog.vbox.set_border_width(10)
+        dialog.vbox.set_spacing(10)
+
+        def on_toggled(widget):
+            markup_preview_config('live_preview', widget.get_active())
+
+        checkbox = gtk.CheckButton("Enable live preview")
+        dialog.vbox.pack_start(checkbox)
+        checkbox.show()
+        checkbox.set_active(markup_preview_config('live_preview'))
+        checkbox.connect('toggled', on_toggled)
+
+        def on_closed(widget):
+            gtk.Widget.destroy(dialog)
+
+        close_button = dialog.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
+        close_button.grab_default()
+        close_button.connect('clicked', on_closed)
+
+        return dialog
+
 
 class MarkupPreview:
 
@@ -132,7 +172,8 @@ class MarkupPreview:
         self.activate()
 
     def update_ui(self):
-        self.parse_document()
+        if markup_preview_config('live_preview') is True:
+            self.parse_document()
 
     def activate(self):
         panel = self.window.get_bottom_panel()
@@ -142,25 +183,40 @@ class MarkupPreview:
         image.set_from_icon_name("gnome-mime-text-html", gtk.ICON_SIZE_MENU)
 
         web_view = webkit.WebView()
+
         scrolled_window = gtk.ScrolledWindow()
         scrolled_window.set_property("hscrollbar-policy", gtk.POLICY_AUTOMATIC)
         scrolled_window.set_property("vscrollbar-policy", gtk.POLICY_AUTOMATIC)
         scrolled_window.set_property("shadow-type", gtk.SHADOW_IN)
         scrolled_window.add(web_view)
         scrolled_window.show_all()
-        panel.add_item(scrolled_window, "Markup Preview", image)
+
+        panel.add_item(scrolled_window, _("Markup Preview"), image)
+
+        action_group = gtk.ActionGroup("MarkupPreviewActions")
+        action_group.add_actions([
+            ("MarkupPreview", None, _("Markup Preview"), "<Alt><Shift>M",
+                _("Preview the HTML version."), self.parse_document)
+        ], self.window)
+
+        ui_id = manager.add_ui_from_string(UI)
 
         window_data = {
             'scrolled_window': scrolled_window,
-            'web_view': web_view
+            'web_view': web_view,
+            'action_group': action_group,
+            'ui_id': ui_id
         }
 
+        manager.insert_action_group(window_data["action_group"], -1)
         manager.ensure_update()
         self.window.set_data('MarkupPreviewData', window_data)
 
     def deactivate(self):
         window_data = self.window.get_data('MarkupPreviewData')
         manager = self.window.get_ui_manager()
+        manager.remove_ui(window_data["ui_id"])
+        manager.remove_action_group(window_data["action_group"])
 
         panel = self.window.get_bottom_panel()
         panel.remove_item(window_data['scrolled_window'])
@@ -213,3 +269,12 @@ class MarkupPreview:
         bottom = self.window.get_bottom_panel()
         bottom.activate_item(window_data['scrolled_window'])
         bottom.set_property('visible', True)
+
+
+def markup_preview_config(name, value=None):
+        base = lambda x: u'/apps/gedit-2/plugins/markup_preview/%s' % x
+        client = gconf.client_get_default()
+
+        if value is not None:
+            client.set_bool(base(name), value)
+        return client.get_bool(base(name))
