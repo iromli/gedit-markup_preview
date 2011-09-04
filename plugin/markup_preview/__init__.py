@@ -231,14 +231,16 @@ class MarkupPreview:
             start = doc.get_iter_at_mark(doc.get_insert())
             end = doc.get_iter_at_mark(doc.get_selection_bound())
 
-        choices = MARKUP_CHOICES.iteritems()
-        file_ext = os.path.splitext(doc.get_short_name_for_display())[-1]
-
         markup = None
-        for format, ext in choices:
-            if file_ext in ext:
-                markup = format
-                break
+        file_ext = os.path.splitext(doc.get_short_name_for_display())[-1]
+        if not file_ext:
+            markup = doc.get_language().get_id()
+        else:
+            choices = MARKUP_CHOICES.iteritems()
+            for format, ext in choices:
+                if file_ext in ext:
+                    markup = format
+                    break
         if markup is None:
             return
 
