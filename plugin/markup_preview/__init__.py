@@ -24,12 +24,9 @@ import gedit
 import gtk
 import os
 import webkit
-
-import markdown
-import textile
-
-from docutils import core
 from gettext import gettext as _
+
+from parser import MarkupParser, MARKUP_CHOICES
 
 
 # Source: http://fgnass.posterous.com/github-markdown-preview
@@ -102,12 +99,6 @@ HTML_TEMPLATE = """<html><head><style type="text/css">
     .github a code,a:link code,a:visited code{color:#4183c4;}
     .github img {max-width:100%%;}
 </style></head><body><div class="github">%s</div></body></html>"""
-
-MARKUP_CHOICES = {
-    'markdown': ['.markdown', '.md', '.mdown', '.mkd', '.mkdn'],
-    'textile': ['.textile'],
-    'rest': ['.rest', '.rst']
-}
 
 UI = """<ui>
     <menubar name="MenuBar">
@@ -248,19 +239,12 @@ class MarkupPreview:
             if file_ext in ext:
                 markup = format
                 break
+        if markup is None:
+            return
 
         text = doc.get_text(start, end)
-        if markup == 'markdown':
-            content = markdown.markdown(text)
-        elif markup == 'rest':
-            extras = {'initial_header_level': '2'}
-            content = core.publish_parts(text, writer_name='html',
-                settings_overrides=extras)
-            content = content.get('html_body')
-        elif markup == 'textile':
-            content = textile.textile(text)
-        else:
-            return
+        markup_parser = MarkupParser(markup, text)
+        content = markup_parser.parse()
 
         html = HTML_TEMPLATE % (content,)
         window_data['web_view'].load_string(html, 'text/html', 'iso-8859-15',
