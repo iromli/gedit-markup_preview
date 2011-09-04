@@ -7,7 +7,7 @@ from docutils import core
 MARKUP_CHOICES = {
     'markdown': ['.markdown', '.md', '.mdown', '.mkd', '.mkdn'],
     'textile': ['.textile'],
-    'rest': ['.rest', '.rst']
+    'restructuredtext': ['.rest', '.rst']
 }
 
 
@@ -20,7 +20,7 @@ class MarkupParser():
     def parse(self):
         if self.markup == 'markdown':
             content = markdown.markdown(self.text)
-        elif self.markup == 'rest':
+        elif self.markup == 'restructuredtext':
             extras = {'initial_header_level': '2'}
             content = core.publish_parts(self.text, writer_name='html',
                 settings_overrides=extras)
