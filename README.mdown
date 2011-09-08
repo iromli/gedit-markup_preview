@@ -70,4 +70,4 @@ Tap `<Alt><Shift>M` keys to preview the document in HTML version. If you want to
 
 ## Copyright
 
-See `LICENSE` for details.
+`Markup Preview` is released under GPL license. See `LICENSE.txt` for details.
