@@ -10,8 +10,6 @@ Preview your favorite markup right from your Gedit text editor.
 
 ## Batteries Included
 
-* Markdown, Textile, and reStructuredText language-spec
-* Markdown MIME
 * HTML previewer bottom pane
 
 ## Installation
