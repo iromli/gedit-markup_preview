@@ -6,6 +6,7 @@ install:
 		mkdir -p $(GEDIT_PLUGIN_DIR);\
 	fi
 	@echo "installing markup_preview plugin";
+	@rm -rf $(GEDIT_PLUGIN_DIR)/markup_preview*;
 	@cp -R $(MARKUPPREVIEW_DIR)/plugin/markup_preview* $(GEDIT_PLUGIN_DIR);
 	@rm -rf $(GEDIT_PLUGIN_DIR)/markup_preview/*.py[co];
 
