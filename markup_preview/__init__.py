@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # markup_preview.py - HTML preview of various markups in Gedit
 # using WebKit and the GitHub cascading stylesheet.
 #
@@ -18,12 +19,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-
-import gconf
-import gedit
-import gtk
+from gi.repository import GObject, Gedit, Gtk, WebKit
 import os
-import webkit
 from gettext import gettext as _
 
 from parser import MarkupParser, MARKUP_CHOICES
@@ -111,114 +108,77 @@ UI = """<ui>
 </ui>"""
 
 
-class MarkupPreviewPlugin(gedit.Plugin):
+class MarkupPreviewPlugin(GObject.Object, Gedit.WindowActivatable):
+
+    __gtype_name__ = "MarkupPreviewPlugin"
+
+    window = GObject.property(type=Gedit.Window)
+
+    WINDOW_DATA = 'MarkupPreviewData'
 
     def __init__(self):
-        gedit.Plugin.__init__(self)
-        self.instances = {}
+        GObject.Object.__init__(self)
 
-    def activate(self, window):
-        self.instances[window] = MarkupPreview(self, window)
+    def do_activate(self):
+        self._insert_menu()
 
-    def deactivate(self, window):
-        self.instances[window].deactivate()
-        del self.instances[window]
+    def do_deactivate(self):
+        self._remove_menu()
 
-    def update_ui(self, window):
-        self.instances[window].update_ui()
-
-    def is_configurable(self):
-        return True
-
-    def create_configure_dialog(self):
-        dialog = gtk.Dialog("Markup Preview Configuration")
-        dialog.set_resizable(False)
-        dialog.vbox.set_border_width(10)
-        dialog.vbox.set_spacing(10)
-
-        def on_toggled(widget):
-            markup_preview_config('live_preview', widget.get_active())
-
-        checkbox = gtk.CheckButton("Enable live preview")
-        dialog.vbox.pack_start(checkbox)
-        checkbox.show()
-        checkbox.set_active(markup_preview_config('live_preview'))
-        checkbox.connect('toggled', on_toggled)
-
-        def on_closed(widget):
-            gtk.Widget.destroy(dialog)
-
-        close_button = dialog.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
-        close_button.grab_default()
-        close_button.connect('clicked', on_closed)
-
-        return dialog
-
-
-class MarkupPreview:
-
-    def __init__(self, plugin, window):
-        self.window = window
-        self.plugin = plugin
-        self.activate()
-
-    def update_ui(self):
-        if markup_preview_config('live_preview') is True:
-            self.parse_document()
-
-    def activate(self):
+    def _insert_menu(self):
         panel = self.window.get_bottom_panel()
         manager = self.window.get_ui_manager()
 
-        image = gtk.Image()
-        image.set_from_icon_name("gnome-mime-text-html", gtk.ICON_SIZE_MENU)
+        image = Gtk.Image()
+        image.set_from_icon_name("gnome-mime-text-html", Gtk.IconSize.MENU)
 
-        web_view = webkit.WebView()
+        web_view = WebKit.WebView()
 
-        scrolled_window = gtk.ScrolledWindow()
-        scrolled_window.set_property("hscrollbar-policy", gtk.POLICY_AUTOMATIC)
-        scrolled_window.set_property("vscrollbar-policy", gtk.POLICY_AUTOMATIC)
-        scrolled_window.set_property("shadow-type", gtk.SHADOW_IN)
+        scrolled_window = Gtk.ScrolledWindow()
+        scrolled_window.set_property("hscrollbar-policy",
+            Gtk.PolicyType.AUTOMATIC)
+        scrolled_window.set_property("vscrollbar-policy",
+            Gtk.PolicyType.AUTOMATIC)
+        scrolled_window.set_property("shadow-type", Gtk.ShadowType.IN)
         scrolled_window.add(web_view)
         scrolled_window.show_all()
 
-        panel.add_item(scrolled_window, _("Markup Preview"), image)
+        panel.add_item(scrolled_window, 'MarkupPreviewPanel',
+            _('Markup Preview'), image)
 
-        action_group = gtk.ActionGroup("MarkupPreviewActions")
+        action_group = Gtk.ActionGroup("MarkupPreviewActions")
         action_group.add_actions([
             ("MarkupPreview", None, _("Markup Preview"), "<Alt><Shift>M",
-                _("Preview the HTML version."), self.parse_document)
+                _("Preview the HTML version."), self._parse_document)
         ], self.window)
 
-        ui_id = manager.add_ui_from_string(UI)
+        self._ui_id = manager.add_ui_from_string(UI)
 
         window_data = {
             'scrolled_window': scrolled_window,
             'web_view': web_view,
-            'action_group': action_group,
-            'ui_id': ui_id
+            'action_group': action_group
         }
 
         manager.insert_action_group(window_data["action_group"], -1)
         manager.ensure_update()
-        self.window.set_data('MarkupPreviewData', window_data)
+        self.window.set_data(self.WINDOW_DATA, window_data)
 
-    def deactivate(self):
-        window_data = self.window.get_data('MarkupPreviewData')
+    def _remove_menu(self):
+        window_data = self.window.get_data(self.WINDOW_DATA)
         manager = self.window.get_ui_manager()
-        manager.remove_ui(window_data["ui_id"])
+        manager.remove_ui(self._ui_id)
         manager.remove_action_group(window_data["action_group"])
 
         panel = self.window.get_bottom_panel()
         panel.remove_item(window_data['scrolled_window'])
 
-        self.window.set_data('MarkupPreviewData', None)
-        self.plugin = None
+        self.window.set_data(self.WINDOW_DATA, None)
         self.window = None
         manager.ensure_update()
 
-    def parse_document(self, *args):
-        window_data = self.window.get_data('MarkupPreviewData')
+    def _parse_document(self, *args):
+        window_data = self.window.get_data(self.WINDOW_DATA)
         view = self.window.get_active_view()
         if not view:
             return
@@ -243,8 +203,7 @@ class MarkupPreview:
                     break
         if markup is None:
             return
-
-        text = doc.get_text(start, end)
+        text = doc.get_text(start, end, False)
         markup_parser = MarkupParser(markup, text)
         content = markup_parser.parse()
 
@@ -255,12 +214,3 @@ class MarkupPreview:
         bottom = self.window.get_bottom_panel()
         bottom.activate_item(window_data['scrolled_window'])
         bottom.set_property('visible', True)
-
-
-def markup_preview_config(name, value=None):
-        base = lambda x: u'/apps/gedit-2/plugins/markup_preview/%s' % x
-        client = gconf.client_get_default()
-
-        if value is not None:
-            client.set_bool(base(name), value)
-        return client.get_bool(base(name))

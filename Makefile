@@ -1,5 +1,4 @@
-MARKUPPREVIEW_DIR = $(dir $(CURDIR)/$(lastword $(MAKEFILE_LIST)))
-GEDIT_PLUGIN_DIR = ~/.gnome2/gedit/plugins
+GEDIT_PLUGIN_DIR = ~/.local/share/gedit/plugins
 
 install:
 	@if [ ! -d $(GEDIT_PLUGIN_DIR) ]; then \
@@ -7,8 +6,7 @@ install:
 	fi
 	@echo "installing markup_preview plugin";
 	@rm -rf $(GEDIT_PLUGIN_DIR)/markup_preview*;
-	@cp -R $(MARKUPPREVIEW_DIR)/plugin/markup_preview* $(GEDIT_PLUGIN_DIR);
-	@rm -rf $(GEDIT_PLUGIN_DIR)/markup_preview/*.py[co];
+	@cp -R markup_preview* $(GEDIT_PLUGIN_DIR);
 
 uninstall:
 	@echo "uninstalling markup_preview plugin";
@@ -17,5 +15,5 @@ uninstall:
 symlink:
 	@echo "symlinking markup_preview plugin";
 	@rm -rf $(GEDIT_PLUGIN_DIR)/markup_preview*;
-	@ln -s $(MARKUPPREVIEW_DIR)/plugin/markup_preview $(GEDIT_PLUGIN_DIR)/markup_preview;
-	@ln -s $(MARKUPPREVIEW_DIR)/plugin/markup_preview.gedit-plugin $(GEDIT_PLUGIN_DIR)/markup_preview.gedit-plugin;
+	@ln -s markup_preview $(GEDIT_PLUGIN_DIR)/markup_preview;
+	@ln -s markup_preview.plugin $(GEDIT_PLUGIN_DIR)/markup_preview.plugin;
