@@ -16,15 +16,7 @@ Preview your favorite markup right from your Gedit text editor.
 
 You'll need to install these Python libraries to use this plugin:
 
-1. `webkit`:
-
-        sudo apt-get install python-webkit
-
-    (or)
-
-    head over to [pythonwebkit](http://www.gnu.org/software/pythonwebkit/) for manual installation
-
-2. `markdown`:
+1. `markdown`:
 
         sudo apt-get install python-markdown
 
@@ -32,7 +24,7 @@ You'll need to install these Python libraries to use this plugin:
 
         [sudo] pip install markdown
 
-3. `textile`:
+2. `textile`:
 
         sudo apt-get install python-textile
 
@@ -40,7 +32,7 @@ You'll need to install these Python libraries to use this plugin:
 
         [sudo] pip install textile
 
-4. `docutils`:
+3. `docutils`:
 
         sudo apt-get install python-docutils
 
